@@ -148,6 +148,8 @@
             .then(response => response.text())
             .then(result => alert(JSON.parse(result)["state_msg"]))
             .catch(error => console.log('error', error));
+
+            security_token = ""
         }
 
         function conn_ws() {
