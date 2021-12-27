@@ -68,7 +68,7 @@
 
             fetch("http://127.0.0.1:8080/logon", requestOptions)
             .then(response => response.text())
-            .then(result => alert(result))
+            .then(result => alert(JSON.parse(result)['state_msg']))
             .catch(error => console.log('error', error));
         }
 
@@ -91,7 +91,16 @@
 
             fetch("http://127.0.0.1:8080/login", requestOptions)
             .then(response => response.text())
-            .then(result => {security_token = result})
+            .then(result => {
+                json_result = JSON.parse(result)
+                if(json_result['state'] == "ok"){
+                    security_token = json_result["state_msg"];
+                    alert('success');
+                }
+                else{
+                    alert(json_result["state_msg"])
+                }
+            })
             .catch(error => console.log('error', error));
         }
 
@@ -112,7 +121,7 @@
 
             fetch("http://127.0.0.1:8080/logout", requestOptions)
             .then(response => response.text())
-            .then(result => alert(result))
+            .then(result => alert(JSON.parse(result)["state_msg"]))
             .catch(error => console.log('error', error));
 
             security_token = "logout"
@@ -137,7 +146,7 @@
 
             fetch("http://127.0.0.1:8080/delete_account", requestOptions)
             .then(response => response.text())
-            .then(result => alert(result))
+            .then(result => alert(JSON.parse(result)["state_msg"]))
             .catch(error => console.log('error', error));
         }
 
