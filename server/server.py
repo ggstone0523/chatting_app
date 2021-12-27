@@ -6,10 +6,39 @@ import secrets
 
 
 def create_json(status, state_msg):
+    """
+    JSON형식의 값을 보낼 수 있게끔 데이터를 받아서 dict 형식으로 변환시키는 함수
+
+    Parameters
+    ----------
+    status : str
+        응답의 상태 값
+    state_msg : str
+        응답의 상태 메시지
+
+    Returns
+    -------
+    dict
+        JSON 형식으로 값을 보낼 수 있도록 dict형식의 값을 반환
+    """
     return {"state": status, "state_msg": state_msg}
 
 
 async def login_handler(request):
+    """
+    사용자의 로그인을 처리하는 함수
+
+    Parameters
+    ----------
+    request : object
+        클라이언트에서 보내온 요청 정보
+
+    Returns
+    -------
+    object
+        로그인에 성공했을 시 보안 토큰을 클라이언트에게 반환,
+        로그인에 실패했을 시 실패 메시지를 클라이언트에게 반환
+    """
     try:
         msg = await request.json()
         redis_password = await redis.get(msg["id"])
@@ -26,6 +55,20 @@ async def login_handler(request):
 
 
 async def logon_handler(request):
+    """
+    사용자의 가입을 처리하는 함수
+
+    Parameters
+    ----------
+    request : object
+        클라이언트에서 보내온 요청 정보
+
+    Returns
+    -------
+    object
+        가입에 성공했을 시 성공 메시지를 클라이언트에게 반환,
+        가입에 실패했을 시 실패 메시지를 클라이언트에게 반환
+    """
     try:
         msg = await request.json()
         if await redis.get(msg["id"]) is not None:
@@ -37,6 +80,20 @@ async def logon_handler(request):
 
 
 async def logout_handler(request):
+    """
+    사용자의 로그아웃을 처리하는 함수
+
+    Parameters
+    ----------
+    request : object
+        클라이언트에서 보내온 요청 정보
+
+    Returns
+    -------
+    object
+        로그아웃에 성공했을 시 성공 메시지를 클라이언트에게 반환,
+        로그아웃에 실패했을 시 실패 메시지를 클라이언트에게 반환
+    """
     try:
         msg = await request.json()
         if await redis.delete(msg["security_token"]) == 1:
@@ -48,6 +105,20 @@ async def logout_handler(request):
 
 
 async def delete_account_handler(request):
+    """
+    사용자의 계정삭제를 처리하는 함수
+
+    Parameters
+    ----------
+    request : object
+        클라이언트에서 보내온 요청 정보
+
+    Returns
+    -------
+    object
+        계정삭제에 성공했을 시 성공 메시지를 클라이언트에게 반환,
+        계정삭제에 실패했을 시 실패 메시지를 클라이언트에게 반환
+    """
     try:
         msg = await request.json()
         redis_password = await redis.get(msg["id"])
@@ -66,6 +137,20 @@ async def delete_account_handler(request):
 
 
 async def check_security_token(ws_current):
+    """
+    사용자로부터 보안 토큰을 받아 보안 토큰의 유효성을 확인해주는 함수
+
+    Parameters
+    ----------
+    ws_current : object
+        단일 클라이언트와의 websocket 연결상태를 저장하고 있는 객체
+
+    Returns
+    -------
+    str or boolean
+        보안 토큰이 알맞은 것일 경우 보안 토큰을 발급받은 사용자의 아이디를 반환,
+        보안 토큰이 알맞지 않은 것일 경우 False를 반환
+    """
     try:
         msg = await ws_current.receive()
         name = await redis.get(msg.data)
@@ -78,6 +163,18 @@ async def check_security_token(ws_current):
 
 
 async def shutdown(app):
+    """
+    ws연결을 담당하는 서버가 갑작스럽게 종료할 시 이를 핸들링하는 함수
+
+    Parameters
+    ----------
+    app : object
+        클라이언트와의 websocket 연결상태를 저장하고 있는 객체
+
+    Returns
+    -------
+    None
+    """
     try:
         app_keys = list(app['websockets'].keys())
         for i in range(len(app_keys)):
@@ -88,6 +185,21 @@ async def shutdown(app):
 
 
 async def websocket_handler(request):
+    """
+    websocket 연결 요청 핸들링 및
+    한 클라이언트로부터 받은 메시지를 그 클라이언트와 같은 방에 있는
+    모든 클라이언트에게 전달하는 함수
+
+    Parameters
+    ----------
+    request : object
+        클라이언트에서 보내온 요청 정보
+
+    Returns
+    -------
+    object
+        단일 클라이언트와의 websocket 연결상태를 저장하고 있는 객체를 반환
+    """
     try:
         ws_current = web.WebSocketResponse()
         await ws_current.prepare(request)
