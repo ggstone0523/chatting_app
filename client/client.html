@@ -1,0 +1,169 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <h3>logon</h3>
+        <input type="text" id="logon_nickname_text" value="id">
+        <input type="text" id="logon_password_text" value="password">
+        <input type="button" onclick="logon_func();" value="logon">
+    </div>
+    <div>
+        <h3>login</h3>
+        <input type="text" id="login_nickname_text" value="id">
+        <input type="text" id="login_password_text" value="password">
+        <input type="button" onclick="login_func();" value="login">
+    </div>
+    <div>
+        <h3>logout</h3>
+        <input type="button" onclick="logout_func();" value="logout">
+    </div>
+    <div>
+        <h3>delete_account</h3>
+        <input type="text" id="delete_account_nickname_text" value="id">
+        <input type="text" id="delete_account_password_text" value="password">
+        <input type="button" onclick="delete_account_func();" value="delete_account">
+    </div>
+    <p id="textbox">
+        
+    </p>
+    <div>
+        <input type="button" onclick="conn_ws();" value="conn">
+        <input type="text" id="msg">
+        <input type="button" onclick="send_msg();" value="send">
+    </div>
+    <script language="javascript" text="text/javascript">
+        let socket;
+        let modifiedData;
+        let security_token;
+        const textbox = document.getElementById("textbox");
+        const msg = document.getElementById("msg")
+        const logon_nickname_text = document.getElementById("logon_nickname_text")
+        const logon_password_text = document.getElementById("logon_password_text")
+        const login_nickname_text = document.getElementById("login_nickname_text")
+        const login_password_text = document.getElementById("login_password_text")
+        const delete_account_nickname_text = document.getElementById("delete_account_nickname_text")
+        const delete_account_password_text = document.getElementById("delete_account_password_text")
+
+        function logon_func() {
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "security_token": "logon",
+                "id": logon_nickname_text.value,
+                "password": logon_password_text.value
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:8080/logon", requestOptions)
+            .then(response => response.text())
+            .then(result => alert(result))
+            .catch(error => console.log('error', error));
+        }
+
+        function login_func() {
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "security_token": "login",
+                "id": login_nickname_text.value,
+                "password": login_password_text.value
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:8080/login", requestOptions)
+            .then(response => response.text())
+            .then(result => {security_token = result})
+            .catch(error => console.log('error', error));
+        }
+
+        function logout_func() {
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "security_token": security_token
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:8080/logout", requestOptions)
+            .then(response => response.text())
+            .then(result => alert(result))
+            .catch(error => console.log('error', error));
+
+            security_token = "logout"
+        }
+
+        function delete_account_func() {
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "security_token": security_token,
+                "id": delete_account_nickname_text.value,
+                "password": delete_account_password_text.value
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://127.0.0.1:8080/delete_account", requestOptions)
+            .then(response => response.text())
+            .then(result => alert(result))
+            .catch(error => console.log('error', error));
+        }
+
+        function conn_ws() {
+            socket = new WebSocket("ws://127.0.0.1:8080/ws");
+
+            socket.onopen = function(e) {
+                alert('communication open');
+                socket.send(security_token);
+            };
+
+            socket.onmessage = function(e) {
+                modifiedData = e.data + '\n';
+                textbox.innerText += modifiedData;
+            };
+
+            socket.onclose = function(e) {
+                alert('communication end');
+            };
+        }
+
+        function send_msg() {
+            socket.send(msg.value);
+            modifiedData = 'me : ' + msg.value + '\n';
+            textbox.innerText += modifiedData;
+        };
+    </script>
+</body>
+</html>
