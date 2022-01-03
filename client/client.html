@@ -38,8 +38,9 @@
     </div>
     <script language="javascript" text="text/javascript">
         let socket;
-        let modifiedData;
-        let security_token;
+        let check_socket_close = true;
+        let modifiedData = "";
+        let security_token = "logout";
         const textbox = document.getElementById("textbox");
         const msg = document.getElementById("msg")
         const logon_nickname_text = document.getElementById("logon_nickname_text")
@@ -54,7 +55,7 @@
             myHeaders.append("Content-Type", "application/json");
 
             var raw = JSON.stringify({
-                "security_token": "logon",
+                "security_token": security_token,
                 "id": logon_nickname_text.value,
                 "password": logon_password_text.value
             });
@@ -105,6 +106,16 @@
         }
 
         function logout_func() {
+            if(security_token == "logout") {
+                alert("you must login")
+                return 0;
+            }
+
+            if(check_socket_close == false) {
+                socket.send('close');
+                textbox.innerText += 'me : close\n';
+            }
+
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
 
@@ -128,6 +139,11 @@
         }
 
         function delete_account_func() {
+            if(check_socket_close == false) {
+                socket.send('close');
+                textbox.innerText += 'me : close\n';
+            }
+
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
 
@@ -156,8 +172,9 @@
             socket = new WebSocket("ws://127.0.0.1:8080/ws");
 
             socket.onopen = function(e) {
-                alert('communication open');
                 socket.send(security_token);
+                alert('communication open');
+                check_socket_close = false;
             };
 
             socket.onmessage = function(e) {
@@ -167,6 +184,7 @@
 
             socket.onclose = function(e) {
                 alert('communication end');
+                check_socket_close = true;
             };
         }
 

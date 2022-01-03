@@ -210,13 +210,25 @@ async def websocket_handler(request):
             return ws_current
         request.app['websockets'][name] = ws_current
 
+        if await redis.llen("msglist") != 0:
+            msglist = await redis.lrange("msglist", 0, -1)
+            msgliststrs = ""
+            for i in range(len(msglist)):
+                if i != len(msglist) - 1:
+                    msgliststrs = msgliststrs + msglist[i].decode('ascii') + '\n'
+                else:
+                    msgliststrs = msgliststrs + msglist[i].decode('ascii')
+            await ws_current.send_str(msgliststrs)
+
         while True:
             msg = await ws_current.receive()
+            msg_modified = name + ' : ' + msg.data
 
             if msg.type == aiohttp.WSMsgType.TEXT:
                 for ws in request.app['websockets'].values():
                     if ws is not ws_current:
-                        await ws.send_str(name + ' : ' + msg.data)
+                        await ws.send_str(msg_modified)
+                await redis.rpush("msglist", msg_modified)
                 if msg.data == 'close':
                     await ws_current.close()
                     break
