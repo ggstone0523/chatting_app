@@ -16,7 +16,3 @@
 ### 9. Likewise, you can delete your account by pressing the delete_account button.
 ### 10. If you want to stop the server, please enter the command below into the shell.
 ### <code>docker-compose down</code>
-<br>
-
-## caution!
-### Logout or account delete is not provide close the WebSocket connection.
