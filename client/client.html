@@ -8,6 +8,8 @@
 <body>
     <div>
         <h3>logon</h3>
+        <p>id must be minimum 4 characters, maximum 12 characters, at least one alphabat.</p>
+        <p>password must be minimum 8 characters, maximum 16 characters, at least one alphabat, one number and one special character.</p>
         <input type="text" id="logon_nickname_text" value="id">
         <input type="text" id="logon_password_text" value="password">
         <input type="button" onclick="logon_func();" value="logon">
@@ -41,6 +43,8 @@
         let check_socket_close = true;
         let modifiedData = "";
         let security_token = "logout";
+        const id_validation = new RegExp("^(?=.*[A-Za-z])[A-Za-z0-9]{4,12}$");
+        const password_validation = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{6,18}$");
         const textbox = document.getElementById("textbox");
         const msg = document.getElementById("msg")
         const logon_nickname_text = document.getElementById("logon_nickname_text")
@@ -50,7 +54,23 @@
         const delete_account_nickname_text = document.getElementById("delete_account_nickname_text")
         const delete_account_password_text = document.getElementById("delete_account_password_text")
 
+        function validation_check(id_check, password_check) {
+            if(!id_validation.test(id_check)) {
+                alert("id form is wrong");
+                return false;
+            }
+            if(!password_validation.test(password_check)) {
+                alert("password form is wrong");
+                return false;
+            }
+            return true;
+        }
+
         function logon_func() {
+            if(!validation_check(logon_nickname_text.value, logon_password_text.value)) {
+                return 0;
+            }
+
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
 
@@ -107,7 +127,7 @@
 
         function logout_func() {
             if(security_token == "logout") {
-                alert("you must login")
+                alert("you must login");
                 return 0;
             }
 
@@ -169,6 +189,11 @@
         }
 
         function conn_ws() {
+            if(security_token == "logout") {
+                alert("you must login");
+                return 0;
+            }
+
             socket = new WebSocket("ws://127.0.0.1:8080/ws");
 
             socket.onopen = function(e) {
@@ -189,6 +214,11 @@
         }
 
         function send_msg() {
+            if(check_socket_close == true) {
+                alert('connection first!');
+                return 0;
+            }
+
             socket.send(msg.value);
             modifiedData = 'me : ' + msg.value + '\n';
             textbox.innerText += modifiedData;
